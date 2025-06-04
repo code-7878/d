@@ -1,0 +1,229 @@
+1. Создание интерфейса вывода данных
+        
+    <Grid>
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel Orientation="Vertical" Background="White">
+                <TextBox Name="TxtSeacrh"
+                         Width="700"
+                         Height="25"
+                         Margin="5"/>
+                <ListBox Name="ListProduct"
+                         Background="Transparent"
+                         Width="650"
+                         BorderBrush="Transparent">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <ListBoxItem BorderBrush="Black" Style="{StaticResource LblRed}" Background="White" Width="600" >
+                                <ListBoxItem.Resources>
+                                    <Style TargetType="ListBoxItem"
+                                           x:Key="LblRed">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding Product.IsActive}" Value="0">
+                                                <Setter Property="Background" Value="Red"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </ListBoxItem.Resources>
+                                <StackPanel Orientation="Vertical">
+                                    <TextBlock Name="StringImage"
+                                                      Visibility="Hidden"
+                                               Text="{Binding MainImagePath, StringFormat=../{0}}"
+                                                   />
+                                    <Image Source="{Binding Text, ElementName=StringImage}"/>
+                                    <TextBlock Text="{Binding Title}" Name="TxtTitle"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="{Binding Cost}"/>
+                                        <TextBlock Text=" рублей "/>
+                                    </StackPanel>
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                                        <Button Name="BtnEdit"
+                                                Style="{StaticResource mainBtn}"
+                                                Click="BtnEdit_Click"
+                                                Content="редактировать"/>
+                                        <Button Name="BtnSaleHistory"
+                                                Style="{StaticResource mainBtn}"
+                                                Click="BtnSaleHistory_Click"
+                                                Content="история продаж"/>
+
+                                    </StackPanel>
+                                </StackPanel>
+                            </ListBoxItem>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </StackPanel>
+        </ScrollViewer>
+        <StackPanel VerticalAlignment="Bottom" Height="150">
+            <StackPanel Orientation="Horizontal">
+                <RadioButton Name="RbUp" Content="По возрастанию" IsMouseCapturedChanged="RbDown_IsEnabledChanged"/>
+                <RadioButton Name="RbDown" Content="По убыванию" IsMouseCapturedChanged="RbUp_IsEnabledChanged"/>
+            </StackPanel>
+            <DataGrid Name ="gridlistik" IsReadOnly="True" AutoGenerateColumns="False">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="название"  Width="*" Binding="{Binding Title}"/>
+                    <DataGridTextColumn Header="Цена" Width="*" Binding="{Binding Cost}"/>
+                    <DataGridTextColumn Header="описание" Width="*" Binding="{Binding Description}"/>
+                    <DataGridTextColumn Header="В наличии" Width="*" Binding="{Binding InActive}"/>
+                    <DataGridTextColumn Header="Компания" Width="*" Binding="{Binding ManufacturedID}"/>
+                    
+                </DataGrid.Columns>
+            </DataGrid>
+        </StackPanel>
+ <Frame x:Name="FrmMain" Grid.Row="1" NavigationUIVisibility="Hidden"/>
+    </Grid>
+</Page>
+
+
+
+
+
+
+
+
+
+2. Внутренность интерфейса вывода данных
+public PageProduct()
+{
+    InitializeComponent();
+
+    DispatcherTimer timer = new DispatcherTimer();
+    gridlistik.ItemsSource = ConnectOdb.conObj.Product.ToList();
+    timer.Interval = TimeSpan.FromSeconds(1);
+    timer.Tick += UpdateData;
+    timer.Start();
+}
+public void UpdateData(object sender, object e)
+{
+    var HistoryProduct = ConnectOdb.conObj.Product.ToList();
+    ListProduct.ItemsSource = HistoryProduct;
+    ListProduct.ItemsSource = ConnectOdb.conObj.Product.Where(x => x.Title.StartsWith(TxtSeacrh.Text) || x.Description.StartsWith(TxtSeacrh.Text)).ToList();
+}
+private void BtnEdit_Click(object sender, RoutedEventArgs e)
+{
+    FrameObj.frameMain.Navigate(new PageEdit((sender as Button).DataContext as Product));
+}
+
+
+
+
+
+3. AppDataFile/ConnectOdb
+class ConnectOdb
+{
+    public static BeautyShopAppEntities conObj = new BeautyShopAppEntities();
+}
+
+
+
+
+
+4. FrameObj
+ public class FrameObj
+ {
+     public static Frame frameMain;
+ }
+
+
+
+
+
+5.Форма логина
+    <Grid Background="White">
+        <StackPanel>
+            <Image Source="/Resources/background-img.png" HorizontalAlignment="Center" Height="439" Opacity=".1" Width="300"/>
+        </StackPanel>
+        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Orientation="Vertical" MinWidth="350" MinHeight="100" Height="168" Width="286">
+            
+            <TextBlock TextWrapping="Wrap" Text="Login" Width="119"/>
+            <TextBox x:Name="txLogin" TextWrapping="Wrap" Width="120" RenderTransformOrigin="0.519,0.6" Margin="0,0,0,20">
+                <TextBox.RenderTransform>
+                    <TransformGroup>
+                        <ScaleTransform/>
+                        <SkewTransform/>
+                        <TranslateTransform/>
+                    </TransformGroup>
+                </TextBox.RenderTransform>
+            </TextBox>
+            
+            <TextBlock  TextWrapping="Wrap" Text="Password" Width="118"/>
+            <PasswordBox x:Name="psbPassword" Width="120" Margin="0,0,0,20"/>
+            <Button Style="{StaticResource mainBtn}" Content="Login" Width="62" Height="25" Click="Button_Click" RenderTransformOrigin="0.476,0.58"/>
+        
+        </StackPanel>
+        
+    </Grid>
+</Page>
+
+
+
+
+
+
+
+6. Форма добавления
+ public partial class AddPage : Page
+ {
+     public AddPage()
+     {
+         InitializeComponent();
+         ColorCbx.ItemsSource = AppData.db.Colorsss.ToList();
+     }
+
+     private void Save(object sender, RoutedEventArgs e)
+     {
+         var cvet = ColorCbx.SelectedItem as Colorsss;
+         AvtoCur avtooo = new AvtoCur()
+         {
+             MarkaAvto = MarkaTbx.Text,
+             ModelAvto = ModelTbx.Text,
+             DateCreat = DataTbx.Text,
+             ColoristoID = cvet.ID,
+             Complectacia = ComplecTbx.Text,
+         };
+         AppData.db.AvtoCur.Add(avtooo);
+         AppData.db.SaveChanges();
+         MessageBox.Show("Ну типо записали");
+         NavigationService.GoBack();
+     }
+ }
+
+
+
+
+7. MainWinsows.xaml.cs
+
+public partial class MainWindow : Window
+{
+    public MainWindow()
+    {
+        InitializeComponent();
+        ConnectObj.conObj = new userEntities();
+        FarmeObj.frameMain = FrmMain;
+        gridlistik.ItemsSource = ConnectObj.conObj.Flowers.ToList();
+        LoadData();
+    }
+
+    private void LoadData()
+    {
+        try
+        {
+            var flowers = ConnectObj.conObj.Flowers.ToList();
+            ListProduct.ItemsSource = flowers;
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show("Ошибка загрузки: " + ex.Message);
+        }
+    }
+    private void FrmMain_Navigated(object sender, NavigationEventArgs e)
+    {
+
+    }
+}
+
+
+
+
+
+
+
