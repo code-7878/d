@@ -27,7 +27,7 @@
                                 <StackPanel Orientation="Vertical">
                                     <TextBlock Name="StringImage"
                                                       Visibility="Hidden"
-                                               Text="{Binding MainImagePath, StringFormat=../{0}}"
+                                               Text="{Binding MainImagePath, StringFormat=../{0}}"		
                                                    />
                                     <Image Source="{Binding Text, ElementName=StringImage}"/>
                                     <TextBlock Text="{Binding Title}" Name="TxtTitle"/>
@@ -160,7 +160,72 @@ class ConnectOdb
 
 
 
-6. Форма добавления
+
+
+
+6. MainWinsows.xaml.cs
+
+using WpfApp1.AppDataFile;
+	
+public partial class MainWindow : Window
+{
+    public MainWindow()
+    {
+        InitializeComponent();
+        ConnectObj.conObj = new userEntities();
+        FrameObj.frameMain = FrmMain;
+
+/////////////////////////////
+        gridlistik.ItemsSource = ConnectObj.conObj.Flowers.ToList();
+        LoadData();
+    }
+
+    private void LoadData()
+    {
+        try
+        {
+            var flowers = ConnectObj.conObj.Flowers.ToList();
+            ListProduct.ItemsSource = flowers;
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show("Ошибка загрузки: " + ex.Message);
+        }
+    }
+    private void FrmMain_Navigated(object sender, NavigationEventArgs e)
+    {
+
+    }
+}
+
+
+7. Упрощенная форма MainWindow.xaml.cs.	
+
+
+    <Grid>
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <ListBox Name="ListFlowers"
+         Background="White"
+         Width="759"
+         BorderBrush="Transparent"
+         Margin="0,0,0,20" Height="347">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <Border BorderBrush="Black" BorderThickness="1" Background="Pink" Width="600" Padding="10" Margin="5">
+                            <StackPanel Orientation="Vertical">
+                                <TextBlock Text="{Binding Name_flower}" FontSize="16" FontWeight="Bold"/>
+                                <TextBlock Text="{Binding Type_flower}" FontSize="14" Foreground="DarkSlateGray"/>
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </ScrollViewer>
+        <Frame x:Name="FrmMain" Grid.Row="1" NavigationUIVisibility="Hidden" Navigated="FrmMain_Navigated"/>
+    </Grid>
+
+
+8. Форма добавления
  public partial class AddPage : Page
  {
      public AddPage()
@@ -189,34 +254,46 @@ class ConnectOdb
 
 
 
+9. Форма исправения/редактирования
 
-7. MainWinsows.xaml.cs
-
-public partial class MainWindow : Window
+public partial class PageEdit : Page
 {
-    public MainWindow()
+    private Flowers currentFlower;
+
+    public PageEdit(Flowers flower)
     {
         InitializeComponent();
-        ConnectObj.conObj = new userEntities();
-        FarmeObj.frameMain = FrmMain;
-        gridlistik.ItemsSource = ConnectObj.conObj.Flowers.ToList();
-        LoadData();
+        currentFlower = flower;
+
+        // Заполняем поля текущими значениями
+        txtName.Text = currentFlower.Name_flower;
+        txtType.Text = currentFlower.Type_flower;
     }
 
-    private void LoadData()
+    private void btnSave_Click(object sender, RoutedEventArgs e)
     {
         try
         {
-            var flowers = ConnectObj.conObj.Flowers.ToList();
-            ListProduct.ItemsSource = flowers;
+            // Обновляем значения из TextBox
+            currentFlower.Name_flower = txtName.Text;
+            currentFlower.Type_flower = txtType.Text;
+
+            // Сохраняем изменения в БД
+            ConnectOdb.conObj.SaveChanges();
+
+            MessageBox.Show("Flower updated successfully!");
+
+            
         }
         catch (Exception ex)
         {
-            MessageBox.Show("Ошибка загрузки: " + ex.Message);
+            MessageBox.Show("Error while saving: " + ex.Message);
         }
     }
-    private void FrmMain_Navigated(object sender, NavigationEventArgs e)
+
+    private void Back_Click(object sender, RoutedEventArgs e)
     {
+        FrameObj.frameMain.Content = new MainWindow();
 
     }
 }
@@ -224,6 +301,31 @@ public partial class MainWindow : Window
 
 
 
+10. Delete
 
+private void Delete_Click(object sender, RoutedEventArgs e)
+{
+    var button = sender as Button;
+    var selectedFlower = button?.DataContext as Flowers;
 
+    if (selectedFlower != null)
+    {
+        var result = MessageBox.Show($"Удалить {selectedFlower.Name_flower}?", "Подтверждение", MessageBoxButton.YesNo, MessageBoxImage.Question);
+        if (result == MessageBoxResult.Yes)
+        {
+            try
+            {
+                ConnectOdb.conObj.Flowers.Remove(selectedFlower);
+                ConnectOdb.conObj.SaveChanges();
+                MessageBox.Show("Цветок успешно удалён!");
+
+                LoadData(); // Обновить список
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Ошибка при удалении: " + ex.Message);
+            }
+        }
+    }
+}
 
