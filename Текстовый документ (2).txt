@@ -199,7 +199,7 @@ public partial class MainWindow : Window
 }
 
 
-7. Упрощенная форма MainWindow.xaml.cs.	
+7. Упрощенная форма MainWindow.xaml.	
 
 
     <Grid>
@@ -256,6 +256,19 @@ public partial class MainWindow : Window
 
 9. Форма исправения/редактирования
 
+<StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Orientation="Vertical">
+    <StackPanel Orientation="Horizontal">
+        <TextBlock Text="Введите название: " Style="{StaticResource txtBlock}"/>
+        <TextBox Name="TxtTitle" Style="{StaticResource txtBox}"/>
+    </StackPanel>
+    <StackPanel Orientation="Horizontal">
+        <TextBlock Text="Цена:" Style="{StaticResource txtBlock}"/>
+        <TextBox Name="TxtCost" Style="{StaticResource txtBox}"/>
+    </StackPanel>
+    <Button Name="BtnSave" Style="{StaticResource BtnSave}" Click="BtnSave_Click" Content="Сохранить" ClickMode="Press"/>
+</StackPanel>
+
+
 public partial class PageEdit : Page
 {
     private Flowers currentFlower;
@@ -291,12 +304,14 @@ public partial class PageEdit : Page
         }
     }
 
-    private void Back_Click(object sender, RoutedEventArgs e)
-    {
-        FrameObj.frameMain.Content = new MainWindow();
-
-    }
+ private void ListMain_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+{
+    FrameObj.frameMain.Navigate(new PageEdit((sender as Button).DataContext as Flowers));
 }
+
+}
+
+
 
 
 
@@ -328,4 +343,29 @@ private void Delete_Click(object sender, RoutedEventArgs e)
         }
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<Style TargetType="TextBox" x:Key="txtBox">
+    <Setter Property="Width" Value="200"/>
+    <Setter Property="FontFamily" Value="Tahoma"/>
+    <Setter Property="Foreground" Value="Black"/>
+    <Setter Property="Background" Value="White"/>
+    <Setter Property="FontSize" Value="17"/>
+    <Setter Property="Height" Value="20"/>
+    <Setter Property="Margin" Value="5"/>
+</Style>
+
+
 
